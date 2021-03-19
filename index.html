@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Challeng-22</title>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+  <div id="container">
+    <form id="formCalc" data-js="calc" method="post" action=".">
+
+      <!-- Display -->
+      <fieldset id="display">
+        <input type="text" name="txtDisplay" data-js="display" disabled />
+      </fieldset>
+
+      <!-- Buttons -->
+      <fieldset id="func">
+        <button type="button" name="btnCE" data-js="btnCE">CE</button>
+      </fieldset>
+
+      <fieldset id="fieldOperator">
+        <button type="button" data-js-op="btnSum">+</button>
+        <button type="button" data-js-op="btnsub">-</button>
+        <button type="button" data-js-op="btnDiv">&#247;</button>
+        <button type="button" data-js-op="btnMult">&#215;</button>
+        <button type="button" data-js-op="btnEqual">=</button>
+
+      </fieldset>
+
+      <!-- Numbers buttons -->
+      <fieldset id="fieldNumber">
+
+        <button type="button" data-js="btnNine">9</button>
+        <button type="button" data-js="btnEight">8</button>
+        <button type="button" data-js="btnSeven">7</button>
+        <button type="button" data-js="btnSix">6</button>
+        <button type="button" data-js="btnFive">5</button>
+        <button type="button" data-js="btnFour">4</button>
+        <button type="button" data-js="btnThree">3</button>
+        <button type="button" data-js="btnTwo">2</button>
+        <button type="button" data-js="btnOne">1</button>
+        <button type="button" data-js="btnZero">0</button>
+
+      </fieldset>
+
+    </form>
+  </div>
+  <!-- <script src="exemplo.js"></script> -->
+  <script src="challeng-23.js"></script>
+
+</body>
+
+</html>
