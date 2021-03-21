@@ -32,12 +32,7 @@
   var $func = doc.querySelector('[data-js=btnCE]');
   var $operator = doc.querySelectorAll('#fieldOperator button[data-js-op]');
   var $number = doc.querySelectorAll('#fieldNumber button[data-js]');
-  var calculator = 0;
   var arrSignal = ['+', '-', '÷', '×'];
-
-  var arrOfObjBtnNumber = Array.prototype.map.call($number, function(item) {
-    return item;
-  }).reverse();
 
   // Object of Objects of buttons operator.
   objBtnOperator['+'] = $operator[0];
@@ -47,7 +42,7 @@
   objBtnOperator['='] = $operator[4];
 
 
-  // função que verifica se existe sinal no final da string
+  // Function what verific if exist signal in string end.
   function existSignalLastStr() {
     var lastChar = $display.value;
 
@@ -59,6 +54,7 @@
     return false;
   }
 
+  // Function what valid if exist signal in start of string.
   function validInitialStr(objBtnOfDOM) {
     if($display.value === '0' || $display.value === arrSignal[2] || $display.value === arrSignal[3]) {
       $display.value = objBtnOfDOM.innerHTML;
@@ -67,6 +63,7 @@
     }
   }
 
+  // Function what set signal in display.
   function setSignalDisplay(objBtnOperator) {
     var op = objBtnOperator.innerHTML;
     var display = $display.value;
@@ -119,7 +116,10 @@
     setSignalDisplay(objBtnOperator[arrSignal[3]]);
   }, false);
 
-  objBtnOperator['='].addEventListener('click', function() {
+  objBtnOperator['='].addEventListener('click', function(evt) {
+    if(!existSignalLastStr()) {
+
+
     //$display.value = win.eval($display.value);
     var str = $display.value;
     var regex = /\D|\d+(?:\.\d+)?/g;
@@ -206,6 +206,7 @@
       str = $display.value;
       arrStr = str.match(regex);
     }
+  }
 
   }, false);
 
