@@ -80,6 +80,30 @@
       $display.value = display.replace(/\D$/, op);
     }
   }
+  // Function what apply the rules of signal.
+  function rulesOfSignals() {
+    var str = $display.value;
+    var arrGroupedSignals = str.match(/(?:\+\-)|(?:\-\+)|(?:\-\-)|(?:\+\+)/);
+    var groupedSignals = arrGroupedSignals ? arrGroupedSignals[0] : arrGroupedSignals;
+
+    switch(groupedSignals) {
+      case '+-':
+        $display.value = $display.value.replace('+-', '-');
+        return;
+      case '-+':
+        $display.value = $display.value.replace('-+', '-');
+        return;
+      case '--':
+        $display.value = $display.value.replace('--', '+');
+        return;
+      case '++':
+        $display.value = $display.value.replace('++', '+');
+        return;
+      default:
+        return;
+    }
+  }
+  rulesOfSignals();
 
   /* Buttons of numbers */
 
@@ -153,7 +177,7 @@
             console.log(mult);
           }
 
-          regexSignal = new RegExp('(?:^[-+])?\\d+'+ arrSignal[3] +'\\d+');
+          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[3] +'\\d+(?:\\.\\d+)?');
           $display.value = $display.value.replace(regexSignal, mult);
 
           str = $display.value;
@@ -173,7 +197,7 @@
             console.log(div);
           }
 
-          regexSignal = new RegExp('(?:^[-+])?\\d+'+ arrSignal[2] +'\\d+');
+          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[2] +'\\d+(?:\\.\\d+)?');
           $display.value = $display.value.replace(regexSignal, div);
 
           str = $display.value;
@@ -193,7 +217,7 @@
             console.log(sum);
           }
 
-          regexSignal = new RegExp('(?:^[-+])?\\d+\\'+ arrSignal[0] +'\\d+');
+          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[0] +'\\d+(?:\\.\\d+)?');
           $display.value = $display.value.replace(regexSignal, sum);
 
           str = $display.value;
@@ -212,7 +236,7 @@
             sub = -(+arrStr[index - 1]) - (+arrStr[index + 1]);
             console.log(sub);
           }
-          regexSignal = new RegExp('(?:^[-+])?\\d+'+ arrSignal[1] +'\\d+');
+          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[1] +'\\d+(?:\\.\\d+)?');
           $display.value = $display.value.replace(regexSignal, sub);
 
           str = $display.value;
