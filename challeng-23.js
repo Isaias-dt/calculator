@@ -165,16 +165,20 @@
       var regexSignal;
 
       function calculus() {
+
+        var start = 0;
+        if(arrStr[0] === '-' || arrStr[0] === '+') {
+          start = 1;
+        }
+
         if(arrStr.indexOf(arrSignal[3]) !== -1) {
           index = arrStr.indexOf(arrSignal[3]);
 
           if(arrStr[0] !== arrSignal[1]) {
             mult = (+arrStr[index - 1]) * (+arrStr[index + 1]);
-            console.log(mult);
 
           } else {
             mult = -(+arrStr[index - 1]) * (+arrStr[index + 1]);
-            console.log(mult);
           }
 
           regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[3] +'\\d+(?:\\.\\d+)?');
@@ -190,11 +194,9 @@
 
           if(arrStr[0] !== arrSignal[1]) {
             div = (+arrStr[index - 1]) / (+arrStr[index + 1]);
-            console.log(div);
 
           } else {
             div = -(+arrStr[index - 1]) / (+arrStr[index + 1]);
-            console.log(div);
           }
 
           regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[2] +'\\d+(?:\\.\\d+)?');
@@ -205,16 +207,18 @@
 
         }
 
+        // if(str.indexOf(arrSignal[3]) === -1 && str.indexOf(arrSignal[2]) === -1) {
+
+        // }
+
         if(arrStr.indexOf(arrSignal[0]) !== -1) {
-          index = arrStr.indexOf(arrSignal[0]);
+          index = arrStr.indexOf(arrSignal[0], start);
 
           if(arrStr[0] !== arrSignal[1]) {
             sum = (+arrStr[index - 1]) + (+arrStr[index + 1]);
-            console.log(sum);
 
           } else {
             sum = -(+arrStr[index - 1]) + (+arrStr[index + 1]);
-            console.log(sum);
           }
 
           regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[0] +'\\d+(?:\\.\\d+)?');
@@ -222,20 +226,18 @@
 
           str = $display.value;
           arrStr = str.match(regex);
-
         }
 
         if(arrStr.indexOf(arrSignal[1]) !== -1) {
-          index = arrStr.indexOf(arrSignal[1]);
+          index = arrStr.indexOf(arrSignal[1], start);
 
           if(arrStr[0] !== arrSignal[1]) {
             sub = (+arrStr[index - 1]) - (+arrStr[index + 1]);
-            console.log(sub);
 
           } else {
             sub = -(+arrStr[index - 1]) - (+arrStr[index + 1]);
-            console.log(sub);
           }
+
           regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[1] +'\\d+(?:\\.\\d+)?');
           $display.value = $display.value.replace(regexSignal, sub);
 
