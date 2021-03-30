@@ -34,6 +34,7 @@ input[type="text"] {
   border: 2px solid rgb(50, 50, 50);
   border-radius: 5px;
   size: 5;
+  text-align: right;
 }
 
 button {
