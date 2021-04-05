@@ -28,27 +28,23 @@
 
   var $display = doc.querySelector('[data-js=display]');
   var $btnCE = doc.querySelector('[data-js=btnCE]');
+  var $btnEqual = doc.querySelector('button[data-js=btnEqual]');
   var $btnOperators = doc.querySelectorAll('button[data-js=btnOperator]');
   var $btnNumbers = doc.querySelectorAll('button[data-js=btnNumber]');
 
+  var arrSignal = ['+', '-', '÷', '×'];
+  var arrOperators = Array.prototype.map.call($btnOperators, function(btn){
+    return btn;
+  });
+
   $display.value = 0;
   $display.disabled = true;
-
-  var objBtnOperator = {};
-  var arrSignal = ['+', '-', '÷', '×'];
-
-  // Object of elements of operators buttons.
-  objBtnOperator['+'] = $btnOperators[0];
-  objBtnOperator['-'] = $btnOperators[1];
-  objBtnOperator['÷'] = $btnOperators[2];
-  objBtnOperator['×'] = $btnOperators[3];
-  objBtnOperator['='] = $btnOperators[4];
 
   /******************
     Listener Event.
   *******************/
 
-  /* Button CE */
+  /* Button of CE */
   $btnCE.addEventListener('click', handlerClickCE, false);
 
   /* Buttons of numbers */
@@ -57,26 +53,12 @@
   });
 
   /* Buttons of operatoration */
+  Array.prototype.forEach.call($btnOperators, function(op){
+    op.addEventListener('click', setSignalDisplay);
+  });
 
-  // Signal sum.
-  objBtnOperator[arrSignal[0]].addEventListener('click', function() {
-    setSignalDisplay(objBtnOperator[arrSignal[0]]);
-  }, false);
-  // Signal subtraction.
-  objBtnOperator[arrSignal[1]].addEventListener('click', function() {
-    setSignalDisplay(objBtnOperator[arrSignal[1]]);
-  }, false);
-  // Signal multiplication.
-  objBtnOperator[arrSignal[2]].addEventListener('click', function() {
-    setSignalDisplay(objBtnOperator[arrSignal[2]]);
-  }, false);
-  // Signal division.
-  objBtnOperator[arrSignal[3]].addEventListener('click', function() {
-    setSignalDisplay(objBtnOperator[arrSignal[3]]);
-  }, false);
-
-  // Signal equal.
-  objBtnOperator['='].addEventListener('click', equal, false);
+  /* Button of equal */
+  $btnEqual.addEventListener('click', equal, false);
 
   /*******************
     List of Function
@@ -91,202 +73,177 @@
   function existSignalLastStr() {
     var lastChar = $display.value;
 
-    for(var key in objBtnOperator) {
-      if(lastChar.charAt(lastChar.length - 1) === key) {
+    return arrOperators.some(function(op){
+      return lastChar.charAt(lastChar.length - 1) === op.value;
+    });
+  }
+
+  // Function what valid if exist only in display.
+  function existOnlyZeroInStr() {
+    return $display.value === '0';
+  }
+
+  // Function what verify if exist zero after of signal.
+  function existZeroBefore() {
+    var display = $display.value;
+    return /[+÷×-]0$/.test(display);
+  }
+
+  // Function what set number in display.
+  function setNumberDisplay() {
+    if(existOnlyZeroInStr())
+      $display.value = this.value;
+    else if(existZeroBefore())
+      $display.value = $display.value.slice(0, -1) + this.value;
+    else
+      $display.value += this.value;
+  }
+
+  // Function what set signal in display.
+  function setSignalDisplay() {
+    var op = this.value;
+    var display = $display.value;
+
+    if(existSignalLastStr())
+      $display.value = display.replace(/\D$/, op);
+    else
+      $display.value += op;
+  }
+
+  // Funtion what calculate the operation.
+  function equal() {
+
+    if(!existSignalLastStr() && !existZeroInDisplay()) {
+
+      var regex = /\D|\d+(?:\.\d+)?/g;  // Regex to separate each number e char of an string in a Array.
+      var str = $display.value;         // Value str is input.
+      var arrStr = str.match(regex);    // Array of char.
+      var idSetTimeout;                 // Id of function setTimeout.
+
+      calculus();
+
+      function calculus() {
+
+        var regex = /\D|\d+(?:\.\d+)?/g;
+        var resultPartOfOperation = 0;
+        var indexOfSignal;
+        var startIndexSplice, qtsOfItemRemove;
+        var signal = orderOfOperationOfSignals(arrStr);
+        var idSetTimeout;
+
+        indexOfSignal = arrStr.indexOf(signal);
+
+        if(signal === arrSignal[3]){
+          if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
+            resultPartOfOperation = (+arrStr[indexOfSignal - 1]) * (+arrStr[indexOfSignal + 1]);
+          } else {
+            resultPartOfOperation = -(+arrStr[indexOfSignal - 1]) * (+arrStr[indexOfSignal + 1]);
+          }
+        }
+
+        if(signal === arrSignal[2]){
+          if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
+            resultPartOfOperation = (+arrStr[indexOfSignal - 1]) / (+arrStr[indexOfSignal + 1]);
+          } else {
+            resultPartOfOperation = -(+arrStr[indexOfSignal - 1]) / (+arrStr[indexOfSignal + 1]);
+          }
+        }
+
+        if(signal === arrSignal[1]){
+          if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
+            resultPartOfOperation = (+arrStr[indexOfSignal - 1]) - (+arrStr[indexOfSignal + 1]);
+          } else {
+            resultPartOfOperation = -(+arrStr[indexOfSignal - 1]) - (+arrStr[indexOfSignal + 1]);
+          }
+        }
+
+        if(signal === arrSignal[0]){
+          if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
+            resultPartOfOperation = (+arrStr[indexOfSignal - 1]) + (+arrStr[indexOfSignal + 1]);
+          } else {
+            resultPartOfOperation = -(+arrStr[indexOfSignal - 1]) + (+arrStr[indexOfSignal + 1]);
+          }
+        }
+
+        if(arrStr[arrStr.indexOf(signal) - 2] === arrSignal[1]) {
+          startIndexSplice = arrStr.indexOf(signal) - 2;
+          qtsOfItemRemove = 4;
+        } else {
+          startIndexSplice = arrStr.indexOf(signal) - 1;
+          qtsOfItemRemove = 3
+        }
+
+        var arrArg = [startIndexSplice, qtsOfItemRemove].concat(resultPartOfOperation.toString().match(regex));
+        Array.prototype.splice.apply(arrStr, arrArg);
+
+        idSetTimeout = win.setTimeout(calculus);
+
+        // if length of arrStr go menor que 2 acabo a operation.
+        if(arrStr.length < 2) {
+          $display.value = arrStr.join('');
+          win.clearTimeout(idSetTimeout);
+        }
+      }
+    }
+  }
+  // Function what verify if exist division per zero.
+  function existDivisionPerZero(arrStr) {
+    var signal = arrStr.indexOf('÷');
+
+    if(signal !== -1) {
+      if(arrStr[signal + 1] === '0' && arrStr[signal - 1] !== '0') {
+        $display.value = 'Não é possível dividir por zero';
+        return true;
+      } else if(arrStr[signal + 1] === '0' && arrStr[signal - 1] === '0') {
+        $display.value = 'Resultado indefinido';
         return true;
       }
     }
     return false;
   }
 
-  // Function what valid if exist signal in start of string.
-  function verifyFirstCharOfStr() {
-    return $display.value === '0' || $display.value === arrSignal[2] || $display.value === arrSignal[3];
-  }
+  function orderOfOperationOfSignals(arrStr) {
+    var start = 0;
+    var mult = -1, sum = -1, sub = -1, div = -1;
 
-  // Function what set number in display.
-  function setNumberDisplay() {
-    if(verifyFirstCharOfStr()) {
-      $display.value = this.innerHTML;
-    } else {
-      $display.value += this.innerHTML;
+    if(arrStr[0] === '-') {
+      start = 1;
     }
-  }
 
-  // Function what set signal in display.
-  function setSignalDisplay(objBtnOperator) {
-    var op = objBtnOperator.innerHTML;
-    var display = $display.value;
-    if(!existSignalLastStr()){
-      if(display === '0')
-        $display.value = op;
-      else
-        $display.value += op;
-    } else {
-      $display.value = display.replace(/\D$/, op);
-    }
-  }
+    sum = arrStr.indexOf('+', start);
+    sub = arrStr.indexOf('-', start);
+    mult = arrStr.indexOf('×');
+    div = arrStr.indexOf('÷');
 
-  // Funtion what calculate the operation.
-  function equal() {
-    if(!existSignalLastStr()) {
-
-      // Value str is input.
-      var str = $display.value;
-
-      var textOfDisplay;
-      var idSetTimeout;
-
-      // Regex for transform each char in index of an Array
-      var regex = /\D|\d+(?:\.\d+)?/g;
-
-      // Array of char.
-      var arrStr = str.match(regex);
-
-      var index = 0;
-      var mult, div, sum, sub;
-      var regexSignal;
-
-      function calculus() {
-
-        var start = 0;
-        if(arrStr[0] === '-' || arrStr[0] === '+') {
-          start = 1;
-        }
-
-        if(arrStr.indexOf(arrSignal[3]) !== -1) {
-          index = arrStr.indexOf(arrSignal[3]);
-
-          if(arrStr[0] !== arrSignal[1]) {
-            mult = (+arrStr[index - 1]) * (+arrStr[index + 1]);
-
-          } else {
-            mult = -(+arrStr[index - 1]) * (+arrStr[index + 1]);
-          }
-
-          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[3] +'\\d+(?:\\.\\d+)?');
-          //$display.value = $display.value.replace(regexSignal, mult);
-
-          textOfDisplay = arrStr.join('').replace(regexSignal, mult);
-          arrStr = textOfDisplay.match(regex);
-
-          idSetTimeout = win.setTimeout(calculus);
-
-          if(!regexSignal.test(textOfDisplay)) {
-            $display.value = textOfDisplay;
-            win.clearTimeout(idSetTimeout);
-          }
-        }
-
-        if(arrStr.indexOf(arrSignal[2]) !== -1) {
-          index = arrStr.indexOf(arrSignal[2]);
-
-          if(arrStr[0] !== arrSignal[1]) {
-            div = (+arrStr[index - 1]) / (+arrStr[index + 1]);
-
-          } else {
-            div = -(+arrStr[index - 1]) / (+arrStr[index + 1]);
-          }
-
-          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[2] +'\\d+(?:\\.\\d+)?');
-          //$display.value = $display.value.replace(regexSignal, div);
-
-          textOfDisplay = arrStr.join('').replace(regexSignal, div);
-          arrStr = textOfDisplay.match(regex);
-
-          idSetTimeout = win.setTimeout(calculus);
-
-          if(!regexSignal.test(textOfDisplay)) {
-            $display.value = textOfDisplay;
-            win.clearTimeout(idSetTimeout);
-          }
-
-        }
-
-        // if(str.indexOf(arrSignal[3]) === -1 && str.indexOf(arrSignal[2]) === -1) {
-
-        // }
-
-        if(arrStr.indexOf(arrSignal[0]) !== -1) {
-          index = arrStr.indexOf(arrSignal[0], start);
-
-          if(arrStr[0] !== arrSignal[1]) {
-            sum = (+arrStr[index - 1]) + (+arrStr[index + 1]);
-
-          } else {
-            sum = -(+arrStr[index - 1]) + (+arrStr[index + 1]);
-          }
-
-          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[0] +'\\d+(?:\\.\\d+)?');
-          //$display.value = $display.value.replace(regexSignal, sum);
-
-          textOfDisplay = arrStr.join('').replace(regexSignal, sum);
-          arrStr = textOfDisplay.match(regex);
-
-          idSetTimeout = win.setTimeout(calculus);
-
-          if(!regexSignal.test(textOfDisplay)) {
-            $display.value = textOfDisplay;
-            win.clearTimeout(idSetTimeout);
-          }
-
-          // str = $display.value;
-          // arrStr = str.match(regex);
-        }
-
-        if(arrStr.indexOf(arrSignal[1]) !== -1) {
-          index = arrStr.indexOf(arrSignal[1], start);
-
-          if(arrStr[0] !== arrSignal[1]) {
-            sub = (+arrStr[index - 1]) - (+arrStr[index + 1]);
-
-          } else {
-            sub = -(+arrStr[index - 1]) - (+arrStr[index + 1]);
-          }
-
-          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[1] +'\\d+(?:\\.\\d+)?');
-          //$display.value = $display.value.replace(regexSignal, sub);
-
-          textOfDisplay = arrStr.join('').replace(regexSignal, sub);
-          arrStr = textOfDisplay.match(regex);
-
-          idSetTimeout = win.setTimeout(calculus);
-
-          if(!regexSignal.test(textOfDisplay)) {
-            $display.value = textOfDisplay;
-            win.clearTimeout(idSetTimeout);
-          }
-
-          // str = $display.value;
-          // arrStr = str.match(regex);
-        }
+    if(div !== -1 && mult !== -1) {
+      if(div < mult) {
+        return arrStr[div];
+      } else {
+        return arrStr[mult];
       }
-      calculus();
+    } else if(sum !== -1 && sub !== -1) {
+      if(sum < sub) {
+        return arrStr[sum];
+      } else {
+        return arrStr[sub];
+      }
+    } else {
+      if(mult !== -1) {
+        return arrStr[mult];
+      }
+      if(div !== -1) {
+        return arrStr[div];
+      }
+      if(sum !== -1) {
+        return arrStr[sum];
+      }
+      if(sub !== -1) {
+        return arrStr[sub];
+      }
     }
   }
 
-  // Function what apply the rules of signal.(function inative)
-  function rulesOfSignals() {
-    var str = $display.value;
-    var arrGroupedSignals = str.match(/(?:\+\-)|(?:\-\+)|(?:\-\-)|(?:\+\+)/);
-    var groupedSignals = arrGroupedSignals ? arrGroupedSignals[0] : arrGroupedSignals;
-
-    switch(groupedSignals) {
-      case '+-':
-        $display.value = $display.value.replace('+-', '-');
-        return;
-      case '-+':
-        $display.value = $display.value.replace('-+', '-');
-        return;
-      case '--':
-        $display.value = $display.value.replace('--', '+');
-        return;
-      case '++':
-        $display.value = $display.value.replace('++', '+');
-        return;
-      default:
-        return;
-    }
+  function existZeroInDisplay() {
+    return $display.value === '0';
   }
-
 })(window, document);
