@@ -27,231 +27,230 @@
   */
 
   var $display = doc.querySelector('[data-js=display]');
-  $display.value = 0;
-  var objBtnOperator = {};
-  var $func = doc.querySelector('[data-js=btnCE]');
-  var $operator = doc.querySelectorAll('#fieldOperator button[data-js-op]');
-  var $number = doc.querySelectorAll('#fieldNumber button[data-js]');
+  var $btnCE = doc.querySelector('[data-js=btnCE]');
+  var $btnEqual = doc.querySelector('button[data-js=btnEqual]');
+  var $btnOperators = doc.querySelectorAll('button[data-js=btnOperator]');
+  var $btnNumbers = doc.querySelectorAll('button[data-js=btnNumber]');
+
   var arrSignal = ['+', '-', '÷', '×'];
+  var arrOperators = Array.prototype.map.call($btnOperators, function(btn){
+    return btn;
+  });
 
-  // Object of elements of operators buttons.
-  objBtnOperator['+'] = $operator[0];
-  objBtnOperator['-'] = $operator[1];
-  objBtnOperator['÷'] = $operator[2];
-  objBtnOperator['×'] = $operator[3];
-  objBtnOperator['='] = $operator[4];
+  $display.value = 0;
+  $display.disabled = true;
 
-  // Array of Objects of numbers buttons.
-  var arrOfObjBtnNumber = Array.prototype.map.call($number, function(item) {
-    return item;
-  }).reverse();
+  /******************
+    Listener Event.
+  *******************/
+
+  /* Button of CE */
+  $btnCE.addEventListener('click', handlerClickCE, false);
+
+  /* Buttons of numbers */
+  Array.prototype.forEach.call($btnNumbers, function(btn) {
+    btn.addEventListener('click', setNumberDisplay, false);
+  });
+
+  /* Buttons of operatoration */
+  Array.prototype.forEach.call($btnOperators, function(op){
+    op.addEventListener('click', setSignalDisplay);
+  });
+
+  /* Button of equal */
+  $btnEqual.addEventListener('click', equal, false);
+
+  /*******************
+    List of Function
+  ********************/
+
+  // Function what restart the display.
+  function handlerClickCE(evt) {
+    $display.value = 0;
+  }
 
   // Function what verific if exist signal in string end.
   function existSignalLastStr() {
     var lastChar = $display.value;
 
-    for(var key in objBtnOperator) {
-      if(lastChar.charAt(lastChar.length - 1) === key) {
+    return arrOperators.some(function(op){
+      return lastChar.charAt(lastChar.length - 1) === op.value;
+    });
+  }
+
+  // Function what valid if exist only in display.
+  function existOnlyZeroInStr() {
+    return $display.value === '0';
+  }
+
+  // Function what verify if exist zero after of signal.
+  function existZeroBefore() {
+    var display = $display.value;
+    return /[+÷×-]0$/.test(display);
+  }
+
+  // Function what set number in display.
+  function setNumberDisplay() {
+    if(existOnlyZeroInStr())
+      $display.value = this.value;
+    else if(existZeroBefore())
+      $display.value = $display.value.slice(0, -1) + this.value;
+    else
+      $display.value += this.value;
+  }
+
+  // Function what set signal in display.
+  function setSignalDisplay() {
+    var op = this.value;
+    var display = $display.value;
+
+    if(existSignalLastStr())
+      $display.value = display.replace(/\D$/, op);
+    else
+      $display.value += op;
+  }
+
+  // Funtion what calculate the operation.
+  function equal() {
+
+    if(!existSignalLastStr() && !existZeroInDisplay()) {
+
+      var regex = /\D|\d+(?:\.\d+)?/g;  // Regex to separate each number e char of an string in a Array.
+      var str = $display.value;         // Value str is input.
+      var arrStr = str.match(regex);    // Array of char.
+      var idSetTimeout;                 // Id of function setTimeout.
+
+      calculus();
+
+      function calculus() {
+
+        var regex = /\D|\d+(?:\.\d+)?/g;
+        var resultPartOfOperation = 0;
+        var indexOfSignal;
+        var startIndexSplice, qtsOfItemRemove;
+        var signal = orderOfOperationOfSignals(arrStr)[0];
+        var idSetTimeout;
+
+        indexOfSignal = orderOfOperationOfSignals(arrStr)[1];
+
+        if(signal === arrSignal[3]){
+          if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
+            resultPartOfOperation = (+arrStr[indexOfSignal - 1]) * (+arrStr[indexOfSignal + 1]);
+          } else {
+            resultPartOfOperation = -(+arrStr[indexOfSignal - 1]) * (+arrStr[indexOfSignal + 1]);
+          }
+        }
+
+        if(signal === arrSignal[2]) {
+          if(existDivisionPerZero(arrStr))
+            return;
+          if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
+            resultPartOfOperation = (+arrStr[indexOfSignal - 1]) / (+arrStr[indexOfSignal + 1]);
+          } else {
+            resultPartOfOperation = -(+arrStr[indexOfSignal - 1]) / (+arrStr[indexOfSignal + 1]);
+          }
+        }
+
+        if(signal === arrSignal[1]){
+          if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
+            resultPartOfOperation = (+arrStr[indexOfSignal - 1]) - (+arrStr[indexOfSignal + 1]);
+          } else {
+            resultPartOfOperation = -(+arrStr[indexOfSignal - 1]) - (+arrStr[indexOfSignal + 1]);
+          }
+        }
+
+        if(signal === arrSignal[0]){
+          if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
+            resultPartOfOperation = (+arrStr[indexOfSignal - 1]) + (+arrStr[indexOfSignal + 1]);
+          } else {
+            resultPartOfOperation = -(+arrStr[indexOfSignal - 1]) + (+arrStr[indexOfSignal + 1]);
+          }
+        }
+
+        if(arrStr[indexOfSignal - 2] === arrSignal[1]) {
+          startIndexSplice = indexOfSignal - 2;
+          qtsOfItemRemove = 4;
+        } else {
+          startIndexSplice = arrStr.indexOf(signal) - 1;
+          qtsOfItemRemove = 3
+        }
+
+        var arrArg = [startIndexSplice, qtsOfItemRemove].concat(resultPartOfOperation.toString().match(regex));
+        Array.prototype.splice.apply(arrStr, arrArg);
+
+        idSetTimeout = win.setTimeout(calculus);
+
+        // if length of arrStr go menor que 2 acabo a operation.
+        if(arrStr.length <= 2) {
+          $display.value = arrStr.join('');
+          win.clearTimeout(idSetTimeout);
+        }
+      }
+    }
+  }
+  // Function what verify if exist division per zero.
+  function existDivisionPerZero(arrStr) {
+    var signal = arrStr.indexOf('÷');
+
+    if(signal !== -1) {
+      if(arrStr[signal + 1] === '0' && arrStr[signal - 1] !== '0') {
+        $display.value = 'Não é possível dividir por zero';
+        return true;
+      } else if(arrStr[signal + 1] === '0' && arrStr[signal - 1] === '0') {
+        $display.value = 'Resultado indefinido';
         return true;
       }
     }
     return false;
   }
 
-  // Function what valid if exist signal in start of string.
-  function validInitialStr(objBtnOfDOM) {
-    if($display.value === '0' || $display.value === arrSignal[2] || $display.value === arrSignal[3]) {
-      $display.value = objBtnOfDOM.innerHTML;
-    } else {
-      $display.value += objBtnOfDOM.innerHTML;
+  function orderOfOperationOfSignals(arrStr) {
+    var start = 0;
+    var mult, sum, sub, div;
+
+    if(arrStr[0] === '-') {
+      start = 1;
     }
-  }
 
-  // Function what set signal in display.
-  function setSignalDisplay(objBtnOperator) {
-    var op = objBtnOperator.innerHTML;
-    var display = $display.value;
-    if(!existSignalLastStr()){
-      if(display === '0')
-        $display.value = op;
-      else
-        $display.value += op;
-    } else {
-      $display.value = display.replace(/\D$/, op);
-    }
-  }
-  // Function what apply the rules of signal.
-  function rulesOfSignals() {
-    var str = $display.value;
-    var arrGroupedSignals = str.match(/(?:\+\-)|(?:\-\+)|(?:\-\-)|(?:\+\+)/);
-    var groupedSignals = arrGroupedSignals ? arrGroupedSignals[0] : arrGroupedSignals;
+    sum = arrStr.indexOf('+', start);
+    sub = arrStr.indexOf('-', start);
+    mult = arrStr.indexOf('×');
+    div = arrStr.indexOf('÷');
 
-    switch(groupedSignals) {
-      case '+-':
-        $display.value = $display.value.replace('+-', '-');
-        return;
-      case '-+':
-        $display.value = $display.value.replace('-+', '-');
-        return;
-      case '--':
-        $display.value = $display.value.replace('--', '+');
-        return;
-      case '++':
-        $display.value = $display.value.replace('++', '+');
-        return;
-      default:
-        return;
-    }
-  }
-  rulesOfSignals();
-
-  /* Buttons of numbers */
-
-  // Number 0.
-  arrOfObjBtnNumber[0].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[0]), false);
-  // Number 1.
-  arrOfObjBtnNumber[1].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[1]), false);
-  // Number 2.
-  arrOfObjBtnNumber[2].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[2]), false);
-  // Number 3.
-  arrOfObjBtnNumber[3].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[3]), false);
-  // Number 4.
-  arrOfObjBtnNumber[4].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[4]), false);
-  // Number 5.
-  arrOfObjBtnNumber[5].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[5]), false);
-  // Number 6.
-  arrOfObjBtnNumber[6].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[6]), false);
-  // Number 7.
-  arrOfObjBtnNumber[7].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[7]), false);
-  // Number 8.
-  arrOfObjBtnNumber[8].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[8]), false);
-  // Number 9.
-  arrOfObjBtnNumber[9].addEventListener('click', () => validInitialStr(arrOfObjBtnNumber[9]), false);
-
-  /* Buttons of operatoration */
-
-  // Signal sum.
-  objBtnOperator[arrSignal[0]].addEventListener('click', function() {
-    setSignalDisplay(objBtnOperator[arrSignal[0]]);
-  }, false);
-  // Signal subtraction.
-  objBtnOperator[arrSignal[1]].addEventListener('click', function() {
-    setSignalDisplay(objBtnOperator[arrSignal[1]]);
-  }, false);
-  // Signal multiplication.
-  objBtnOperator[arrSignal[2]].addEventListener('click', function() {
-    setSignalDisplay(objBtnOperator[arrSignal[2]]);
-  }, false);
-  // Signal division.
-  objBtnOperator[arrSignal[3]].addEventListener('click', function() {
-    setSignalDisplay(objBtnOperator[arrSignal[3]]);
-  }, false);
-  // Signal equal.
-  objBtnOperator['='].addEventListener('click', function equal() {
-
-    if(!existSignalLastStr()) {
-
-      // Value str is input.
-      var str = $display.value;
-
-      // Regex for transform each char in index of an Array
-      var regex = /\D|\d+(?:\.\d+)?/g;
-
-      // Array de char.
-      var arrStr = str.match(regex);
-
-      var index = 0;
-      var mult, div, sum, sub;
-      var regexSignal;
-
-      function calculus() {
-
-        var start = 0;
-        if(arrStr[0] === '-' || arrStr[0] === '+') {
-          start = 1;
-        }
-
-        if(arrStr.indexOf(arrSignal[3]) !== -1) {
-          index = arrStr.indexOf(arrSignal[3]);
-
-          if(arrStr[0] !== arrSignal[1]) {
-            mult = (+arrStr[index - 1]) * (+arrStr[index + 1]);
-
-          } else {
-            mult = -(+arrStr[index - 1]) * (+arrStr[index + 1]);
-          }
-
-          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[3] +'\\d+(?:\\.\\d+)?');
-          $display.value = $display.value.replace(regexSignal, mult);
-
-          str = $display.value;
-          arrStr = str.match(regex);
-
-        }
-
-        if(arrStr.indexOf(arrSignal[2]) !== -1) {
-          index = arrStr.indexOf(arrSignal[2]);
-
-          if(arrStr[0] !== arrSignal[1]) {
-            div = (+arrStr[index - 1]) / (+arrStr[index + 1]);
-
-          } else {
-            div = -(+arrStr[index - 1]) / (+arrStr[index + 1]);
-          }
-
-          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[2] +'\\d+(?:\\.\\d+)?');
-          $display.value = $display.value.replace(regexSignal, div);
-
-          str = $display.value;
-          arrStr = str.match(regex);
-
-        }
-
-        // if(str.indexOf(arrSignal[3]) === -1 && str.indexOf(arrSignal[2]) === -1) {
-
-        // }
-
-        if(arrStr.indexOf(arrSignal[0]) !== -1) {
-          index = arrStr.indexOf(arrSignal[0], start);
-
-          if(arrStr[0] !== arrSignal[1]) {
-            sum = (+arrStr[index - 1]) + (+arrStr[index + 1]);
-
-          } else {
-            sum = -(+arrStr[index - 1]) + (+arrStr[index + 1]);
-          }
-
-          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[0] +'\\d+(?:\\.\\d+)?');
-          $display.value = $display.value.replace(regexSignal, sum);
-
-          str = $display.value;
-          arrStr = str.match(regex);
-        }
-
-        if(arrStr.indexOf(arrSignal[1]) !== -1) {
-          index = arrStr.indexOf(arrSignal[1], start);
-
-          if(arrStr[0] !== arrSignal[1]) {
-            sub = (+arrStr[index - 1]) - (+arrStr[index + 1]);
-
-          } else {
-            sub = -(+arrStr[index - 1]) - (+arrStr[index + 1]);
-          }
-
-          regexSignal = new RegExp('(?:^[-+])?\\d+(?:\\.\\d+)?\\'+ arrSignal[1] +'\\d+(?:\\.\\d+)?');
-          $display.value = $display.value.replace(regexSignal, sub);
-
-          str = $display.value;
-          arrStr = str.match(regex);
-        }
+    if(div !== -1 && mult !== -1) {
+      if(div < mult) {
+        return [arrStr[div], div];
+      } else {
+        return [arrStr[mult], mult];
       }
-      calculus();
+    } else if(mult !== -1 && sum !== -1 && sub !== -1 && div === -1) {
+      return [arrStr[mult], mult];
+    } else if(div !== -1 && sum !== -1 && sub !== -1 && mult === -1) {
+      return [arrStr[div], div];
     }
-  }, false);
+    else if(sum !== -1 && sub !== -1) {
+      if(sum < sub) {
+        return [arrStr[sum], sum];
+      } else {
+        return [arrStr[sub], sub];
+      }
+    } else {
+      if(mult !== -1) {
+        return [arrStr[mult], mult];
+      }
+      if(div !== -1) {
+        return [arrStr[div], div];
+      }
+      if(sum !== -1) {
+        return [arrStr[sum], sum];
+      }
+      if(sub !== -1) {
+        return [arrStr[sub], sub];
+      }
+    }
+  }
 
-  /* Button CE */
-  $func.addEventListener('click', function() {
-    $display.value = 0;
-  }, false);
-
+  function existZeroInDisplay() {
+    return $display.value === '0';
+  }
 })(window, document);
