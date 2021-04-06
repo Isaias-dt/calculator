@@ -128,10 +128,10 @@
         var resultPartOfOperation = 0;
         var indexOfSignal;
         var startIndexSplice, qtsOfItemRemove;
-        var signal = orderOfOperationOfSignals(arrStr);
+        var signal = orderOfOperationOfSignals(arrStr)[0];
         var idSetTimeout;
 
-        indexOfSignal = arrStr.indexOf(signal);
+        indexOfSignal = orderOfOperationOfSignals(arrStr)[1];
 
         if(signal === arrSignal[3]){
           if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
@@ -141,7 +141,9 @@
           }
         }
 
-        if(signal === arrSignal[2]){
+        if(signal === arrSignal[2]) {
+          if(existDivisionPerZero(arrStr))
+            return;
           if(arrStr[indexOfSignal-2] !== arrSignal[1]) {
             resultPartOfOperation = (+arrStr[indexOfSignal - 1]) / (+arrStr[indexOfSignal + 1]);
           } else {
@@ -165,8 +167,8 @@
           }
         }
 
-        if(arrStr[arrStr.indexOf(signal) - 2] === arrSignal[1]) {
-          startIndexSplice = arrStr.indexOf(signal) - 2;
+        if(arrStr[indexOfSignal - 2] === arrSignal[1]) {
+          startIndexSplice = indexOfSignal - 2;
           qtsOfItemRemove = 4;
         } else {
           startIndexSplice = arrStr.indexOf(signal) - 1;
@@ -179,7 +181,7 @@
         idSetTimeout = win.setTimeout(calculus);
 
         // if length of arrStr go menor que 2 acabo a operation.
-        if(arrStr.length < 2) {
+        if(arrStr.length <= 2) {
           $display.value = arrStr.join('');
           win.clearTimeout(idSetTimeout);
         }
@@ -204,7 +206,7 @@
 
   function orderOfOperationOfSignals(arrStr) {
     var start = 0;
-    var mult = -1, sum = -1, sub = -1, div = -1;
+    var mult, sum, sub, div;
 
     if(arrStr[0] === '-') {
       start = 1;
@@ -217,28 +219,33 @@
 
     if(div !== -1 && mult !== -1) {
       if(div < mult) {
-        return arrStr[div];
+        return [arrStr[div], div];
       } else {
-        return arrStr[mult];
+        return [arrStr[mult], mult];
       }
-    } else if(sum !== -1 && sub !== -1) {
+    } else if(mult !== -1 && sum !== -1 && sub !== -1 && div === -1) {
+      return [arrStr[mult], mult];
+    } else if(div !== -1 && sum !== -1 && sub !== -1 && mult === -1) {
+      return [arrStr[div], div];
+    }
+    else if(sum !== -1 && sub !== -1) {
       if(sum < sub) {
-        return arrStr[sum];
+        return [arrStr[sum], sum];
       } else {
-        return arrStr[sub];
+        return [arrStr[sub], sub];
       }
     } else {
       if(mult !== -1) {
-        return arrStr[mult];
+        return [arrStr[mult], mult];
       }
       if(div !== -1) {
-        return arrStr[div];
+        return [arrStr[div], div];
       }
       if(sum !== -1) {
-        return arrStr[sum];
+        return [arrStr[sum], sum];
       }
       if(sub !== -1) {
-        return arrStr[sub];
+        return [arrStr[sub], sub];
       }
     }
   }
